@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emotion-Based Recommender</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: #121212;
+        font-family: Arial, sans-serif;
+        color: white;
+    }
+
+    h1 {
+        text-align: center;
+        margin-top: 30px;
+        color: #1DB954;
+        font-size: 32px;
+    }
+
+    .container {
+        width: 60%;
+        margin: auto;
+        margin-top: 40px;
+    }
+
+    textarea {
+        width: 100%;
+        height: 120px;
+        border-radius: 10px;
+        border: none;
+        padding: 12px;
+        background: #181818;
+        color: white;
+        font-size: 16px;
+        outline: none;
+    }
+
+    button {
+        margin-top: 15px;
+        width: 100%;
+        padding: 14px;
+        background: #1DB954;
+        border: none;
+        border-radius: 10px;
+        color: black;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    button:hover {
+        background: #1ed760;
+    }
+
+    .result {
+        margin-top: 30px;
+        background: #181818;
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    .emotion {
+        font-size: 22px;
+        margin-bottom: 20px;
+        color: #1DB954;
+    }
+
+    .section-title {
+        margin-top: 20px;
+        font-size: 20px;
+        color: #1DB954;
+    }
+
+    .card {
+        background: #242424;
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 15px;
+    }
+
+    .card a {
+        color: #1DB954;
+        font-weight: bold;
+        text-decoration: none;
+    }
+
+    .card a:hover {
+        text-decoration: underline;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>🎧 Emotion-Based Music & Podcast Recommender</h1>
+
+<div class="container">
+    <textarea id="userText" placeholder="How are you feeling today?"></textarea>
+    <button onclick="sendEmotion()">Analyze Emotion</button>
+
+    <div id="result" class="result" style="display:none;"></div>
+</div>
+
+
+<script>
+function sendEmotion() {
+    const text = document.getElementById("userText").value.trim();
+    if (!text) {
+        alert("Please enter how you feel.");
+        return;
+    }
+
+    fetch("/predict", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({text: text})
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        let html = `<div class='emotion'>🎯 Emotion Detected: ${data.emotion}</div>`;
+
+        // MUSIC SECTION
+        html += `<div class='section-title'>🎵 Music Suggestions</div>`;
+        if (data.music.length === 0) {
+            html += "<p>No music available.</p>";
+        } else {
+            data.music.forEach(m => {
+                html += `
+                <div class="card">
+                    <b>${m.track_name}</b><br>
+                    ${m.artist_name}<br>
+                    <a href="${m.spotify_url}" target="_blank">Open in Spotify</a>
+                </div>`;
+            });
+        }
+
+        // PODCAST SECTION
+        html += `<div class='section-title'>🎙️ Podcast Suggestions</div>`;
+        if (data.podcasts.length === 0) {
+            html += "<p>No podcasts available.</p>";
+        } else {
+            data.podcasts.forEach(p => {
+                html += `
+                <div class="card">
+                    <b>${p.episode_title}</b><br>
+                    ${p.publisher}<br>
+                    <a href="${p.podcast_link}" target="_blank">Listen Episode</a>
+                </div>`;
+            });
+        }
+
+        document.getElementById("result").innerHTML = html;
+        document.getElementById("result").style.display = "block";
+    });
+}
+</script>
+
+</body>
+</html>
+
